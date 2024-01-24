@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class SecondScreen extends StatelessWidget {
-  // Data property
   final data;
 
-  SecondScreen({this.data});
+  // Asegúrate de que 'data' no esté siendo inicializado como nulo aquí
+  const SecondScreen({Key? key, required this.data}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +15,8 @@ class SecondScreen extends StatelessWidget {
       body: Center(
         child: Column(
           children: [
-            Text('Nombre: ${data['nombre']}'),
-            Text('RUT: ${data['rut']}'),
+            // Asegúrate de que 'data' no sea nulo al acceder a sus propiedades
+            Text('Nombre: ${data['nombre'] ?? 'Sin nombre'}'),
           ],
         ),
       ),
