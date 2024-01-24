@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:http/http.dart' as http;
@@ -12,7 +14,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String qrValue = "Código QR";
+  String qrValue = "";
 
   void scanQr() async {
     String? cameraScanResult = await scanner.scan();
@@ -26,44 +28,54 @@ class _MyAppState extends State<MyApp> {
       int endIndex = cameraScanResult.indexOf("-", startIndex + 4) + 2;
 
       // Extrae la parte de la cadena después de "RUN=" hasta el carácter "-"
-      String extractedPart = cameraScanResult.substring(startIndex + 4, endIndex);
-      print("RUN: $extractedPart");
-      setState(() {
-        qrValue = extractedPart;
-      });
+      String extractedPart =
+          cameraScanResult.substring(startIndex + 4, endIndex);
 
       // Realiza la solicitud GET
-      await performGetRequest(extractedPart);
+      String apiUrl =
+          "http://172.28.199.144:3000/personas/obtenerRut/$extractedPart";
+      var response = await http.get(Uri.parse(apiUrl));
 
-      // Realiza la solicitud POST
-      await performPostRequest(extractedPart);
+      if (response.statusCode == 200) {
+        // Realiza la solicitud POST
+        var data = jsonDecode(response.body);
+        String apiUrl2 = "http://172.28.199.144:3000/registros/agregar";
+        Map<String, dynamic> requestBody = {
+          'persona': data['_id'],
+        };
+        var response2 = await http.post(
+          Uri.parse(apiUrl2),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(requestBody),
+        );
 
-      
-
-      // Actualiza el estado de la aplicación
+        if (response2.statusCode == 201) {
+          setState(() {
+            var data2 = jsonDecode(response2.body);
+            var tipo = data2['tipo'];
+            if(tipo=='entrada'){
+              qrValue = "Entrada: ${data['nombre']}";
+            }
+            else{
+              qrValue = "Salida: ${data['nombre']}";
+            }
+          });
+        } else {
+          setState(() {
+            qrValue = "Error en la solicitud POST: ${response2.statusCode}";
+          });
+        }
+      } else {
+        setState(() {
+          qrValue = "Error en la solicitud GET: ${response.statusCode}";
+        });
+      }
     } else {
       // Si la cadena escaneada no contiene "RUN=", puedes manejarlo de la manera que desees
       setState(() {
         qrValue = "No se encontró el formato esperado";
       });
     }
-  }
-
-  Future<void> performGetRequest(String rut) async {
-    // Aquí realiza tu solicitud GET al servidor con el rut
-    // Por ejemplo:
-    String apiUrl = "http://172.28.199.144:3000/personas/obtenerRut/$rut";
-    http.Response response = await http.get(Uri.parse(apiUrl));
-    print(response.body);
-  }
-
-  Future<void> performPostRequest(String rut) async {
-    // Aquí realiza tu solicitud POST al servidor con el rut
-    // Por ejemplo:
-    String apiUrl = "http://172.28.199.144:3000/registros/agregar";
-    Map<String, String> body = {"rut": rut};
-    http.Response response = await http.post(Uri.parse(apiUrl), body: body);
-    print(response.body);
   }
 
   @override
@@ -75,12 +87,16 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('QR Code Scanner'),
         ),
-        body: Center(
-          child: Text(
-            qrValue,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18),
-          ),
+        body: Column(
+          children: [
+            Center(
+              child: Text(
+                qrValue,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
         ),
         floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.red,
