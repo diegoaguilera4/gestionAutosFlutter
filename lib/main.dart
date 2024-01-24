@@ -92,26 +92,80 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'QR Code Scanner',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('QR Code Scanner'),
+      theme: ThemeData(
+        // Configuración del tema claro
+        //seleccionar fuente desde google fonts
+        brightness: Brightness.light,
+        textTheme: const TextTheme(
+          bodyLarge : TextStyle(
+            fontFamily: 'Onest',
+          ),
         ),
-        body: Column(
+      ),
+      darkTheme: ThemeData(
+        // Configuración del tema oscuro
+        brightness: Brightness.dark,
+        textTheme: const TextTheme(
+          bodyLarge : TextStyle(
+            fontFamily: 'Onest',
+          ),
+        ),
+      ),
+      home: Scaffold(
+        body: Stack(
+          alignment: Alignment.center,
           children: [
-            Center(
-              child: Text(
-                qrValue,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text(
+                    qrValue,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 100.0, // Ajusta la distancia desde el tope según tu preferencia
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                child: const Center(
+                  child: Text(
+                    'Escanea el código QR',
+                    style: TextStyle(
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Onest',
+                    ),
+                  ),
+                ),
               ),
             ),
+            Positioned(
+                bottom:
+                    100.0, // Ajusta la distancia hacia abajo según tu preferencia
+                child: SizedBox(
+                  width: 180,
+                  height: 180,
+                  child: FittedBox(
+                    child: FloatingActionButton(
+                      backgroundColor: const Color(0xFF126aa3),
+                      onPressed: () => scanQr(),
+                      heroTag: null,
+                      mini: false,
+                      elevation: 5.0,
+                      highlightElevation: 12.0,
+                      child: const Icon(
+                        Icons.qr_code_scanner,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                    ),
+                  ),
+                )),
           ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.red,
-          onPressed: () => scanQr(),
-          child: const Icon(Icons.camera),
         ),
       ),
     );
