@@ -15,6 +15,7 @@ class VistaQr extends StatefulWidget {
 
 class _VistaQrState extends State<VistaQr> {
   String qrValue = "";
+  bool isLoading = false;
 
   void scanQr() async {
     // Solicitar permiso de cámara
@@ -22,6 +23,9 @@ class _VistaQrState extends State<VistaQr> {
 
     if (status.isGranted) {
       String? cameraScanResult = await scanner.scan();
+      setState(() {
+        isLoading = true; // Cambia el estado a "cargando"
+      });
 
       // Verifica si la cadena escaneada contiene "RUN=" antes de intentar extraer la parte específica
       if (cameraScanResult != null && cameraScanResult.contains("RUN=")) {
@@ -63,6 +67,9 @@ class _VistaQrState extends State<VistaQr> {
               'cargo': data['d_cargo'],
               'tipo': data2['tipo'],
             };
+            setState(() {
+              isLoading = false; // Cambia el estado de vuelta a "no cargando"
+            });
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => SecondScreen(data: persona),
@@ -72,6 +79,9 @@ class _VistaQrState extends State<VistaQr> {
             Map<String, dynamic> error = {
               'error': "Error en la solicitud POST: ${response2.statusCode}",
             };
+            setState(() {
+              isLoading = false; // Cambia el estado de vuelta a "no cargando"
+            });
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => SecondScreen(data: error),
@@ -82,6 +92,9 @@ class _VistaQrState extends State<VistaQr> {
           Map<String, dynamic> error = {
             'error': "Error en la solicitud GET: $response.statusCode",
           };
+          setState(() {
+            isLoading = false; // Cambia el estado de vuelta a "no cargando"
+          });
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => SecondScreen(data: error),
@@ -92,6 +105,9 @@ class _VistaQrState extends State<VistaQr> {
         Map<String, dynamic> error = {
           'error': "No se encontró el formato esperado",
         };
+        setState(() {
+          isLoading = false; // Cambia el estado de vuelta a "no cargando"
+        });
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SecondScreen(data: error),
@@ -101,13 +117,16 @@ class _VistaQrState extends State<VistaQr> {
     } else {
       // Permiso denegado, manejar según sea necesario
       Map<String, dynamic> error = {
-          'error': "Permiso de cámara denegado",
-        };
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => SecondScreen(data: error),
-          ),
-        );
+        'error': "Permiso de cámara denegado",
+      };
+      setState(() {
+        isLoading = false; // Cambia el estado de vuelta a "no cargando"
+      });
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => SecondScreen(data: error),
+        ),
+      );
     }
   }
 
@@ -167,6 +186,14 @@ class _VistaQrState extends State<VistaQr> {
               ),
             ),
           ),
+          isLoading
+            ? Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : Container(), // Indicador de carga
         ],
       ),
     );
