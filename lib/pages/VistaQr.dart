@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:gestionautos/pages/SecondScreen.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
@@ -53,46 +54,60 @@ class _VistaQrState extends State<VistaQr> {
           );
 
           if (response2.statusCode == 201) {
-            setState(() {
-              var data2 = jsonDecode(response2.body);
-              var tipo = data2['tipo'];
-              if (tipo == 'entrada') {
-                qrValue = "Entrada: ${data['nombre']}";
-              } else {
-                qrValue = "Salida: ${data['nombre']}";
-              }
-            });
+            //enviar a la otra pantalla
+            var data2 = jsonDecode(response2.body);
             Map<String, dynamic> persona = {
               'nombre': data['nombre'],
               'rut': data['rut'],
+              'centro': data['d_cencos'],
+              'cargo': data['d_cargo'],
+              'tipo': data2['tipo'],
             };
-            //enviar a la otra pantalla
-            Navigator.pushNamed(
-              context,
-              '/persona',
-              arguments: persona,
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SecondScreen(data: persona),
+              ),
             );
           } else {
-            setState(() {
-              qrValue = "Error en la solicitud POST: ${response2.statusCode}";
-            });
+            Map<String, dynamic> error = {
+              'error': "Error en la solicitud POST: ${response2.statusCode}",
+            };
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SecondScreen(data: error),
+              ),
+            );
           }
         } else {
-          setState(() {
-            qrValue = "Error en la solicitud GET: ${response.statusCode}";
-          });
+          Map<String, dynamic> error = {
+            'error': "Error en la solicitud GET: $response.statusCode",
+          };
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => SecondScreen(data: error),
+            ),
+          );
         }
       } else {
-        // Si la cadena escaneada no contiene "RUN=", puedes manejarlo de la manera que desees
-        setState(() {
-          qrValue = "No se encontró el formato esperado";
-        });
+        Map<String, dynamic> error = {
+          'error': "No se encontró el formato esperado",
+        };
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SecondScreen(data: error),
+          ),
+        );
       }
     } else {
       // Permiso denegado, manejar según sea necesario
-      setState(() {
-        qrValue = "Permiso de cámara denegado";
-      });
+      Map<String, dynamic> error = {
+          'error': "Permiso de cámara denegado",
+        };
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SecondScreen(data: error),
+          ),
+        );
     }
   }
 
