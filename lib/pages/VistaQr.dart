@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:gestionautos/pages/SecondScreen.dart';
+import 'package:gestionautos/pages/VisitaScreen.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
@@ -41,13 +42,13 @@ class _VistaQrState extends State<VistaQr> {
 
         // Realiza la solicitud GET
         String apiUrl =
-            "http://172.28.199.144:3000/personas/obtenerRut/$extractedPart";
+            "http://172.28.199.80:3000/personas/obtenerRut/$extractedPart";
         var response = await http.get(Uri.parse(apiUrl));
 
         if (response.statusCode == 200) {
           // Realiza la solicitud POST
           var data = jsonDecode(response.body);
-          String apiUrl2 = "http://172.28.199.144:3000/registros/agregar";
+          String apiUrl2 = "http://172.28.199.80:3000/registros/agregar";
           Map<String, dynamic> requestBody = {
             'persona': data['_id'],
           };
@@ -89,17 +90,79 @@ class _VistaQrState extends State<VistaQr> {
             );
           }
         } else {
-          Map<String, dynamic> error = {
-            'error': "Error en la solicitud GET: $response.statusCode",
-          };
-          setState(() {
-            isLoading = false; // Cambia el estado de vuelta a "no cargando"
-          });
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => SecondScreen(data: error),
-            ),
-          );
+          DateTime now = DateTime.now();
+          String apiVisita =
+              "http://172.28.199.80:3000/permisoVisitas/obtenerRut/$extractedPart/$now";
+          var responseV = await http.get(Uri.parse(apiVisita));
+
+          if (responseV.statusCode == 200) {
+            var dataVisita = jsonDecode(responseV.body);
+            String apiAgregarVisita =
+                "http://172.28.199.80:3000/registroVisitas/agregar";
+            Map<String, dynamic> requestVisita = {
+              'permiso': dataVisita['_id'],
+            };
+            var responseV2 = await http.post(
+              Uri.parse(apiAgregarVisita),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode(requestVisita),
+            );
+            if (responseV2.statusCode == 201) {
+              var dataV2 = jsonDecode(responseV2.body);
+              Map<String, dynamic> visitaP = {
+                'nombre': dataVisita['nombre'],
+                'rut': dataVisita['rut'],
+                'motivo': dataVisita['motivo'],
+                'tipo': dataV2['tipo'],
+              };
+
+              setState(() {
+                isLoading = false; // Cambia el estado de vuelta a "no cargando"
+              });
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => VisitaScreen(data: visitaP),
+                ),
+              );
+            } else {
+              Map<String, dynamic> error = {
+                'error':
+                    "Error en la solicitud POSTv2: ${responseV2.statusCode}",
+              };
+              setState(() {
+                isLoading = false; // Cambia el estado de vuelta a "no cargando"
+              });
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => SecondScreen(data: error),
+                ),
+              );
+            }
+          } else if (responseV.statusCode == 404) {
+            Map<String, dynamic> error = {
+              'error': "La fecha no está dentro del rango de la visita.",
+            };
+            setState(() {
+              isLoading = false; // Cambia el estado de vuelta a "no cargando"
+            });
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SecondScreen(data: error),
+              ),
+            );
+          } else {
+            Map<String, dynamic> error = {
+              'error': "Error en la solicitud GETv2: $responseV.statusCode",
+            };
+            setState(() {
+              isLoading = false; // Cambia el estado de vuelta a "no cargando"
+            });
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SecondScreen(data: error),
+              ),
+            );
+          }
         }
       } else {
         Map<String, dynamic> error = {
@@ -187,13 +250,13 @@ class _VistaQrState extends State<VistaQr> {
             ),
           ),
           isLoading
-            ? Container(
-                color: Colors.black.withOpacity(0.5),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            : Container(), // Indicador de carga
+              ? Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : Container(), // Indicador de carga
         ],
       ),
     );

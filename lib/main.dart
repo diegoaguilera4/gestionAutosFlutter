@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gestionautos/pages/SecondScreen.dart';
+import 'package:gestionautos/pages/VisitaScreen.dart';
 import 'package:gestionautos/pages/VistaQr.dart';
 import 'package:gestionautos/pages/page_404.dart';
 
@@ -13,6 +14,8 @@ class MyApp extends StatelessWidget {
   final _routes = {
     '/': (context) => const VistaQr(),
     '/persona': (context) => const SecondScreen(data: {},),
+    '/visita': (context) => const VisitaScreen(data: {},),
+
   };
 
   
