@@ -44,7 +44,6 @@ class _VistaQrState extends State<VistaQr> {
         String apiUrl =
             "http://172.28.199.80:3000/personas/obtenerRut/$extractedPart";
         var response = await http.get(Uri.parse(apiUrl));
-
         if (response.statusCode == 200) {
           // Realiza la solicitud POST
           var data = jsonDecode(response.body);
@@ -94,7 +93,6 @@ class _VistaQrState extends State<VistaQr> {
           String apiVisita =
               "http://172.28.199.80:3000/permisoVisitas/obtenerRut/$extractedPart/$now";
           var responseV = await http.get(Uri.parse(apiVisita));
-
           if (responseV.statusCode == 200) {
             var dataVisita = jsonDecode(responseV.body);
             String apiAgregarVisita =
@@ -139,8 +137,9 @@ class _VistaQrState extends State<VistaQr> {
               );
             }
           } else if (responseV.statusCode == 404) {
+
             Map<String, dynamic> error = {
-              'error': "La fecha no está dentro del rango de la visita.",
+              'error': jsonDecode(responseV.body)['mensaje'],
             };
             setState(() {
               isLoading = false; // Cambia el estado de vuelta a "no cargando"
