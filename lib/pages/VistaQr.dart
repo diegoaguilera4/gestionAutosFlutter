@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:gestionautos/pages/ErrorScreen.dart';
 import 'package:gestionautos/pages/SecondScreen.dart';
 import 'package:gestionautos/pages/VisitaScreen.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
@@ -18,7 +19,7 @@ class _VistaQrState extends State<VistaQr> {
   String qrValue = "";
   bool isLoading = false;
 
-  void scanQr() async {
+  void scanQr(tipo) async {
     // Solicitar permiso de cámara
     var status = await Permission.camera.request();
 
@@ -50,6 +51,7 @@ class _VistaQrState extends State<VistaQr> {
           String apiUrl2 = "http://172.28.199.80:3000/registros/agregar";
           Map<String, dynamic> requestBody = {
             'persona': data['_id'],
+            'tipo': tipo,
           };
           var response2 = await http.post(
             Uri.parse(apiUrl2),
@@ -84,11 +86,12 @@ class _VistaQrState extends State<VistaQr> {
             });
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => SecondScreen(data: error),
+                builder: (context) => ErrorScreen(data: error),
               ),
             );
           }
         } else {
+          //CASO VISITA
           DateTime now = DateTime.now();
           String apiVisita =
               "http://172.28.199.80:3000/permisoVisitas/obtenerRut/$extractedPart/$now";
@@ -99,6 +102,7 @@ class _VistaQrState extends State<VistaQr> {
                 "http://172.28.199.80:3000/registroVisitas/agregar";
             Map<String, dynamic> requestVisita = {
               'permiso': dataVisita['_id'],
+              'tipo': tipo,
             };
             var responseV2 = await http.post(
               Uri.parse(apiAgregarVisita),
@@ -132,12 +136,11 @@ class _VistaQrState extends State<VistaQr> {
               });
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => SecondScreen(data: error),
+                  builder: (context) => ErrorScreen(data: error),
                 ),
               );
             }
           } else if (responseV.statusCode == 404) {
-
             Map<String, dynamic> error = {
               'error': jsonDecode(responseV.body)['mensaje'],
             };
@@ -146,7 +149,7 @@ class _VistaQrState extends State<VistaQr> {
             });
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => SecondScreen(data: error),
+                builder: (context) => ErrorScreen(data: error),
               ),
             );
           } else {
@@ -172,7 +175,7 @@ class _VistaQrState extends State<VistaQr> {
         });
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SecondScreen(data: error),
+            builder: (context) => ErrorScreen(data: error),
           ),
         );
       }
@@ -186,7 +189,7 @@ class _VistaQrState extends State<VistaQr> {
       });
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => SecondScreen(data: error),
+          builder: (context) => ErrorScreen(data: error),
         ),
       );
     }
@@ -210,13 +213,18 @@ class _VistaQrState extends State<VistaQr> {
               ),
             ],
           ),
+
           Positioned(
-            top: 100.0,
+              top: 120,
+              width: 280,
+              child: Image.asset('assets/images/logocsf.png')),
+          Positioned(
+            top: 350.0,
             child: Container(
               padding: const EdgeInsets.all(16.0),
               child: const Center(
                 child: Text(
-                  'Escanea el código QR',
+                  'Seleccione opción',
                   style: TextStyle(
                     fontSize: 30.0,
                     fontWeight: FontWeight.bold,
@@ -227,27 +235,78 @@ class _VistaQrState extends State<VistaQr> {
             ),
           ),
           Positioned(
-            bottom: 100.0,
-            child: SizedBox(
-              width: 180,
-              height: 180,
-              child: FittedBox(
-                child: FloatingActionButton(
-                  backgroundColor: const Color(0xFF126aa3),
-                  onPressed: () => scanQr(),
-                  heroTag: null,
-                  mini: false,
-                  elevation: 5.0,
-                  highlightElevation: 12.0,
-                  child: const Icon(
-                    Icons.qr_code_scanner,
-                    color: Colors.white,
-                    size: 35,
-                  ),
+            top: 550.0,
+            child: Row(
+              children: [
+                Column(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: FittedBox(
+                        child: FloatingActionButton(
+                          backgroundColor: const Color(0xFF126aa3),
+                          onPressed: () => scanQr("entrada"),
+                          heroTag: null,
+                          mini: false,
+                          elevation: 5.0,
+                          highlightElevation: 12.0,
+                          child: const Icon(
+                            Icons.input,
+                            color: Colors.white,
+                            size: 35,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Entrada',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Onest',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(
+                  width: 50,
+                ),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: FittedBox(
+                        child: FloatingActionButton(
+                          backgroundColor: Color.fromARGB(255, 163, 18, 18),
+                          onPressed: () => scanQr("salida"),
+                          heroTag: null,
+                          mini: false,
+                          elevation: 5.0,
+                          highlightElevation: 12.0,
+                          child: const Icon(
+                            Icons.output,
+                            color: Colors.white,
+                            size: 35,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Salida',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'Onest',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
+
           isLoading
               ? Container(
                   color: Colors.black.withOpacity(0.5),

@@ -66,6 +66,7 @@ flutter:
     - assets/images/icono-entrada.png
     - assets/images/icono-salida.png
     - assets/images/icono-error.png
+    - assets/images/logocsf.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
